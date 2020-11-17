@@ -98,10 +98,10 @@ for item in data["backup_list"]:
         if 'tar_opts' in item:
             tar_opts += item['tar_opts']
         cmd = ['tar', tar_opts, dest_path_and_file, '--listed-incremental', snar_file, item['src_path']]
-        print("Created full backup file {} from {}".format(dest_path_and_file, item['src_path']))
+        print("Creating full backup file {} from {}".format(dest_path_and_file, item['src_path']))
     else:
         cmd = ['tar', 'zcgPf', snar_file, dest_path_and_file, item['src_path']]
-        print("Created incremental backup file {} from {}".format(dest_path_and_file, item['src_path']))
+        print("Creating incremental backup file {} from {}".format(dest_path_and_file, item['src_path']))
 
     # Start the tar file process going, keep a record in running_procs, so we can check
     # later that it's finished and work out how long it took, then move onto the next.
@@ -114,7 +114,7 @@ while running_procs:
         if ret is not None:
             running_procs.remove((proc, start, name))
             elapsed_time = time.strftime("%M mins %S seconds", time.gmtime(timer() - start))
-            print("Creating {} took {} to complete".format(name, elapsed_time))
+            print("Created {} took {} to complete".format(name, elapsed_time))
             break
         else:
             time.sleep(POLL_FREQ)
