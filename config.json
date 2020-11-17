@@ -1,0 +1,16 @@
+{
+  "backup_list": [
+    {
+      "name": "backup_dir_1",
+      "src_path": "/path/to/your/src/dir1",
+      "dest_path": "/path/to/your/dest/dir1",
+      "enabled": false
+    },
+    {
+      "name": "backup_dir_2",
+      "src_path": "/path/to/your/src/dir2",
+      "dest_path": "/path/to/your/dest/dir2",
+      "enabled": false
+    }
+  ]
+}
