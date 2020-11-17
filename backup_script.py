@@ -94,7 +94,10 @@ for item in data["backup_list"]:
     dest_path_and_file = "{}/{}".format(full_destination_path, file_name)
 
     if args.full:
-        cmd = ['tar', 'zcPf', dest_path_and_file, '--listed-incremental', snar_file, item['src_path']]
+        tar_opts = 'zcPf'
+        if 'tar_opts' in item:
+            tar_opts += item['tar_opts']
+        cmd = ['tar', tar_opts, dest_path_and_file, '--listed-incremental', snar_file, item['src_path']]
         print("Created full backup file {} from {}".format(dest_path_and_file, item['src_path']))
     else:
         cmd = ['tar', 'zcgPf', snar_file, dest_path_and_file, item['src_path']]
