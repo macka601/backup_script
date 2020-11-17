@@ -95,15 +95,15 @@ for item in data["backup_list"]:
 
     if args.full:
         cmd = ['tar', 'zcPf', dest_path_and_file, '--listed-incremental', snar_file, item['src_path']]
-        print("Creating full backup file {} from {}".format(dest_path_and_file, item['src_path']))
+        print("Created full backup file {} from {}".format(dest_path_and_file, item['src_path']))
     else:
         cmd = ['tar', 'zcgPf', snar_file, dest_path_and_file, item['src_path']]
-        print("Creating incremental backup file {} from {}".format(dest_path_and_file, item['src_path']))
+        print("Created incremental backup file {} from {}".format(dest_path_and_file, item['src_path']))
 
     # Start the tar file process going, keep a record in running_procs, so we can check
     # later that it's finished and work out how long it took, then move onto the next.
     process = Popen(cmd, stdout=PIPE, stderr=PIPE)
-    running_procs.append((process, timer(), file_name))
+    running_procs.append((process, timer(), dest_path_and_file))
 
 while running_procs:
     for proc, start, name in running_procs:
@@ -111,7 +111,7 @@ while running_procs:
         if ret is not None:
             running_procs.remove((proc, start, name))
             elapsed_time = time.strftime("%M mins %S seconds", time.gmtime(timer() - start))
-            print("Creating {} took {} to complete".format(dest_path_and_file, elapsed_time))
+            print("Creating {} took {} to complete".format(name, elapsed_time))
             break
         else:
             time.sleep(POLL_FREQ)
