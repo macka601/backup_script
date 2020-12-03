@@ -238,7 +238,7 @@ if __name__ == '__main__':
     # is not enabled, let the user know, and move onto the next item.
     for item in backup_items:
         if not item.is_enabled():
-            log.warning("{0} is not enabled, skipping ".format(item['name']))
+            log.warning("{0} is not enabled, skipping ".format(item.name))
             continue
 
         # Queue up the jobs we have to do
@@ -247,7 +247,7 @@ if __name__ == '__main__':
         # Append the item to the jobs list.
         jobs.append(item)
 
-    if script_actions.preaction:
+    if script_actions and script_actions.preaction is not None:
         try:
             pre = subprocess.Popen(script_actions.preaction, shell=True)
             pre.wait()
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     for thread in threads:
         thread.join()
 
-    if script_actions.postaction:
+    if script_actions and script_actions.postaction is not None:
         try:
             post = subprocess.Popen(script_actions.postaction, shell=True)
             post.wait()
@@ -270,7 +270,7 @@ if __name__ == '__main__':
             log.error("Failed to run the pre_action_script command")
 
     elapsed_time = time.strftime("%M mins %S seconds", time.gmtime(timer() - script_start_time))
-    if script_actions.showtime:
+    if script_actions and script_actions.showtime is not None:
         log.info("Backup script took {0} to complete".format(elapsed_time))
 
     log.info("Script finished")
