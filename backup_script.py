@@ -1,15 +1,16 @@
+#!/usr/bin/env python3
 """
-    Name: backup_script
-    Author: Grant McEwan
-    Description:
-        Originally just to first tar up files, and then just commence incremental backups, this
-        has grown so that a user only ever really has to specify what directory to backup, and
-        if there is any pre/post actions they need doing first/last, eg, dump a database first.
+Name: backup_script.py
+Author: Grant McEwan
+Description:
+    Originally just to first tar up files, and then just commence incremental backups, this
+    has grown so that a user only ever really has to specify what directory to backup, and
+    if there is any pre/post actions they need doing first/last, eg, dump a database first.
 
-        Each item specified in the config.json file is parsed and is queued to run in its own thread
-        in the order `pre, tar, post`.
-        Ensure all mandatory keys are specified, or program will exit.
-        If an item is not enabled, it will be skipped.
+    Each item specified in the config.json file is parsed and is queued to run in its own thread
+    in the order pre-action->tar->post-action.
+    Ensure all mandatory keys are specified, or program will exit.
+    If an item is not enabled, it will be skipped.
 """
 
 import argparse
