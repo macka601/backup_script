@@ -114,8 +114,8 @@ class BackupItem:
 
         _built_cmd = ''
         if full_backup:
-            _built_cmd = "{0} {1} {2} {3}".format(dest_path_and_file, '--listed-incremental', snar_file,
-                                              self.src_path)
+            _built_cmd = "{0} {1} {2} {3}".format(dest_path_and_file, '--listed-incremental',
+                                                  snar_file, self.src_path)
             log.debug("Creating full backup file {0} from {1}".format(dest_path_and_file,
                                                                     self.src_path))
         else:
@@ -155,12 +155,12 @@ def create_backup_items():
         with open(CONFIG_FILE_NAME) as data:
             j = json.load(data, object_hook=
                           lambda c: collections.namedtuple('Item', c.keys())(*c.values()))
-            try:
-                other_actions = ScriptAction(preaction=j.pre_script_action,
-                                             postaction=j.post_script_action,
-                                             showtime=j.show_script_time)
-            except AttributeError:
-                other_actions = None
+
+            pre = getattr(j, "pre_script_action", None)
+            post = getattr(j, "post_script_action", None)
+            showtime = getattr(j, "show_script_time", None)
+
+            other_actions = ScriptAction(pre, post, showtime)
 
             for bitem in j.backup_list:
                 if is_valid(bitem):
@@ -247,7 +247,7 @@ if __name__ == '__main__':
         # Append the item to the jobs list.
         jobs.append(item)
 
-    if script_actions and script_actions.preaction is not None:
+    if script_actions.preaction:
         try:
             pre = subprocess.Popen(script_actions.preaction, shell=True)
             pre.wait()
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     for thread in threads:
         thread.join()
 
-    if script_actions and script_actions.postaction is not None:
+    if script_actions.postaction:
         try:
             post = subprocess.Popen(script_actions.postaction, shell=True)
             post.wait()
@@ -270,7 +270,7 @@ if __name__ == '__main__':
             log.error("Failed to run the pre_action_script command")
 
     elapsed_time = time.strftime("%M mins %S seconds", time.gmtime(timer() - script_start_time))
-    if script_actions and script_actions.showtime is not None:
+    if script_actions.showtime:
         log.info("Backup script took {0} to complete".format(elapsed_time))
 
     log.info("Script finished")
