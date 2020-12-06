@@ -70,17 +70,18 @@ class BackupItem:
     Each command is queued in a thread by calling *.queue_items, then when
     *.start() is called, the job queue is processed.
     """
-    def __init__(self, name=None, src_path=None, dest_path=None, enabled=None, pre_action=None,
-                 post_action=None, tar_opts=None, show_time_taken=None):
+    def __init__(self, opt):
         self.job_queue = []
-        self.name = name
-        self.src_path = src_path
-        self.dest_path = dest_path
-        self.enabled = enabled
-        self.pre_action = pre_action
-        self.post_action = post_action
-        self.tar_opts = tar_opts
-        self.show_time = show_time_taken
+        # These are all mandatory parameters and should never be empty at this point
+        self.name = opt.name
+        self.src_path = opt.src_path
+        self.dest_path = opt.dest_path
+        self.enabled = opt.enabled
+        # optional parameters
+        self.pre_action = getattr(opt, "pre_action", None)
+        self.post_action = getattr(opt, "post_action", None)
+        self.tar_opts = getattr(opt, "tar_opts", None)
+        self.show_time = getattr(opt, "show_time_taken", None)
 
     def is_enabled(self):
         """ returns enabled state """
@@ -164,7 +165,7 @@ def create_backup_items():
 
             for bitem in j.backup_list:
                 if is_valid(bitem):
-                    _item = BackupItem(*bitem)
+                    _item = BackupItem(bitem)
                     item_list.append(_item)
 
             return item_list, other_actions
