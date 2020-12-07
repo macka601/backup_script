@@ -216,7 +216,8 @@ if __name__ == '__main__':
     if args.verbose:
         log_level = log.DEBUG
 
-    log.basicConfig(level=log_level, format='%(levelname)s: %(message)s')
+    log.basicConfig(level=log_level, format='%(asctime)s %(levelname)s: %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
     backup_items, script_actions = create_backup_items()
     if backup_items is None:
