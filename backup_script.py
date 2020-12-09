@@ -141,7 +141,13 @@ class BackupItem:
                 proc = subprocess.Popen(_job, shell=True)
                 proc.wait()
                 log.debug("job {0} finished".format(_job))
-                cmd_time = time.strftime("%M mins %S seconds", time.gmtime(timer() - start_time))
+                time_taken = timer() - start_time
+                time_format = "%M mins %S seconds"
+
+                # If job too longer than 3599 seconds (1 hr), display hours as well
+                if time_taken > 3599:
+                    time_format = "%H hrs %M mins %S seconds"
+                cmd_time = time.strftime(time_format, time.gmtime(time_taken))
                 if self.show_time:
                     log.info("{0} took {1} to complete".format(_job, cmd_time))
 
@@ -271,7 +277,14 @@ if __name__ == '__main__':
         except FileNotFoundError:
             log.error("Failed to run the pre_action_script command")
 
-    elapsed_time = time.strftime("%M mins %S seconds", time.gmtime(timer() - script_start_time))
+    time_taken = timer() - script_start_time
+    time_format = "%M mins %S seconds"
+    # If job too longer than 3599 seconds (1 hr), display hours as well
+    if time_taken > 3599:
+        time_format = "%H hrs %M mins %S seconds"
+
+    elapsed_time = time.strftime(time_format, time.gmtime(time_taken))
+
     if script_actions.showtime:
         log.info("Backup script took {0} to complete".format(elapsed_time))
 
