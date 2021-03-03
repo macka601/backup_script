@@ -26,3 +26,4 @@ Does an action before tar is started, `pre_action: [type string] command`
 Does an action after tar is finished, `post_action: [type string] command`   
 Any extra options for the tar process, `tar_opts: [type string] options`   
 Show how long the item took to process, `show_time_taken: [type bool] true/false`
+Override the default log location (default is /var/log/backup_script), `log_file: [type string] /path/to/file`
