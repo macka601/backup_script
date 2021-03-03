@@ -27,8 +27,6 @@ import time
 from subprocess import PIPE, Popen
 import threading
 from timeit import default_timer as timer
-
-# Some file names to get us going
 from typing import NamedTuple
 
 LOCK_FILE_NAME = "backup.lock"
@@ -40,9 +38,10 @@ class ScriptAction(NamedTuple):
     Named tuple class for storing specific script actions.
     These can then be accessed as eg object_name.preaction
     """
-    preaction: str = None
-    postaction: str = None
-    showtime: bool = False
+    preaction: str
+    postaction: str
+    showtime: bool
+    log_file: str
 
 
 def is_valid(_item):
@@ -166,9 +165,8 @@ def create_backup_items():
             pre = getattr(j, "pre_script_action", None)
             post = getattr(j, "post_script_action", None)
             showtime = getattr(j, "show_script_time", None)
-
-            other_actions = ScriptAction(pre, post, showtime)
-
+            new_log = getattr(j, "log_file", "/var/log/backup_script")
+            other_actions = ScriptAction(pre, post, showtime, log_file=new_log)
             for bitem in j.backup_list:
                 if is_valid(bitem):
                     _item = BackupItem(bitem)
@@ -215,17 +213,29 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--full', action='store_true',
                         help='Does a full backup of the directory (otherwise incremental)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Turns on warnings')
+    parser.add_argument('-c', '--console_log', action='store_true', help='Log to console only')
     args = parser.parse_args()
+
+    backup_items, script_actions = create_backup_items()
 
     # Sort out some logging
     log_level = log.INFO
     if args.verbose:
         log_level = log.DEBUG
 
-    log.basicConfig(level=log_level, format='%(asctime)s %(levelname)s: %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
+    if args.console_log:
+        log.basicConfig(level=log_level, format='%(asctime)s %(levelname)s: %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+        log.info("Script logging to console only")
+    else:
+        try:
+            log.basicConfig(level=log_level, format='%(asctime)s %(levelname)s: %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S', filename=script_actions.log_file)
+        except PermissionError:
+            print("ERROR: Cannot write to supplied log location: {}".format(script_actions.log_file))
+            # User has to exit, we don't know where to write our logs too.
+            quit(0)
 
-    backup_items, script_actions = create_backup_items()
     if backup_items is None:
         log.info("No backup jobs found, exiting")
         sys.exit()
