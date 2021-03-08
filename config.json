@@ -4,7 +4,8 @@
       "name": "backup_dir_1",
       "src_path": "/path/to/your/src/dir1",
       "dest_path": "/path/to/your/dest/dir1",
-      "enabled": false
+      "enabled": false,
+      "show_time": true
     },
     {
       "name": "backup_dir_2",
