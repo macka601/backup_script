@@ -49,8 +49,6 @@ def is_valid(_item):
     # A list of required keys for the config.json file
     reqd_keys = [
         "name",
-        "src_path",
-        "dest_path",
         "enabled",
     ]
 
@@ -73,10 +71,10 @@ class BackupItem:
         self.job_queue = []
         # These are all mandatory parameters and should never be empty at this point
         self.name = opt.name
-        self.src_path = opt.src_path
-        self.dest_path = opt.dest_path
         self.enabled = opt.enabled
         # optional parameters
+        self.src_path = getattr(opt, "src_path", None)
+        self.dest_path = getattr(opt, "dest_path", None)
         self.pre_action = getattr(opt, "pre_action", None)
         self.post_action = getattr(opt, "post_action", None)
         self.tar_opts = getattr(opt, "tar_opts", None)
@@ -91,41 +89,44 @@ class BackupItem:
         if self.pre_action:
             self.job_queue.append(self.pre_action)
 
-        # Now build our tar up to queue
-        full_destination_path = "{}/{}".format(self.dest_path, self.name)
-        if not p.exists(full_destination_path):
-            os.makedirs(full_destination_path)
+        if self.src_path and self.dest_path:
+            # Now build our tar up to queue
+            full_destination_path = "{}/{}".format(self.dest_path, self.name)
+            if not p.exists(full_destination_path):
+                os.makedirs(full_destination_path)
 
-        if full_backup:
-            file_name = "full-{}-{}.tar.gz".format(self.name, date)
-            snar_file = "{}/{}-{}.snar".format(full_destination_path, self.name, date)
+            if full_backup:
+                file_name = "full-{}-{}.tar.gz".format(self.name, date)
+                snar_file = "{}/{}-{}.snar".format(full_destination_path, self.name, date)
+            else:
+                file_name = "i.{}-{}.tar.gz".format(self.name, date)
+                cmd = ['find', full_destination_path, '-name', '*snar']
+                output = Popen(cmd, stdout=PIPE).communicate()[0]
+                output = output.decode()
+                snar_file = output.split('\n')[0]
+
+            dest_path_and_file = "{}/{}".format(full_destination_path, file_name)
+
+            tar_opts = 'zcPf'
+            if self.tar_opts:
+                tar_opts += self.tar_opts
+
+            _built_cmd = ''
+            if full_backup:
+                _built_cmd = "{0} {1} {2} {3}".format(dest_path_and_file, '--listed-incremental',
+                                                      snar_file, self.src_path)
+                log.debug("Creating full backup file {0} from {1}".format(dest_path_and_file,
+                                                                        self.src_path))
+            else:
+                tar_opts += 'g'
+                _built_cmd = "{0} {1} {2}".format(snar_file, dest_path_and_file, self.src_path)
+                log.debug("Creating incremental backup file {} from {}".format(dest_path_and_file,
+                                                                               self.src_path))
+
+            cmd = "tar {0} {1}".format(tar_opts, _built_cmd)
+            self.job_queue.append(cmd)
         else:
-            file_name = "i.{}-{}.tar.gz".format(self.name, date)
-            cmd = ['find', full_destination_path, '-name', '*snar']
-            output = Popen(cmd, stdout=PIPE).communicate()[0]
-            output = output.decode()
-            snar_file = output.split('\n')[0]
-
-        dest_path_and_file = "{}/{}".format(full_destination_path, file_name)
-
-        tar_opts = 'zcPf'
-        if self.tar_opts:
-            tar_opts += self.tar_opts
-
-        _built_cmd = ''
-        if full_backup:
-            _built_cmd = "{0} {1} {2} {3}".format(dest_path_and_file, '--listed-incremental',
-                                                  snar_file, self.src_path)
-            log.debug("Creating full backup file {0} from {1}".format(dest_path_and_file,
-                                                                    self.src_path))
-        else:
-            tar_opts += 'g'
-            _built_cmd = "{0} {1} {2}".format(snar_file, dest_path_and_file, self.src_path)
-            log.debug("Creating incremental backup file {} from {}".format(dest_path_and_file,
-                                                                           self.src_path))
-
-        cmd = "tar {0} {1}".format(tar_opts, _built_cmd)
-        self.job_queue.append(cmd)
+            log.debug("No src or dest specified, only executing pre and post actions")
 
         # Check if we have to do something when we're finished
         if self.post_action:
