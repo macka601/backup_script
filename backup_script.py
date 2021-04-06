@@ -113,7 +113,7 @@ class BackupItem:
 
             _built_cmd = ''
             if full_backup:
-                _built_cmd = "{0} {1} {2} {3}".format(dest_path_and_file, '--listed-incremental',
+                _built_cmd = "{0} {1}{2} {3}".format(dest_path_and_file, '--listed-incremental=',
                                                       snar_file, self.src_path)
                 log.debug("Creating full backup file {0} from {1}".format(dest_path_and_file,
                                                                         self.src_path))
